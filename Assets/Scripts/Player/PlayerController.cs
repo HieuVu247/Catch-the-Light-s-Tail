@@ -10,33 +10,48 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        controls = new PlayerControls(); // Sử dụng input action asset đã tạo
-        playerMovement = GetComponent<PlayerMovement>(); 
+        controls = new PlayerControls();
+        playerMovement = GetComponent<PlayerMovement>();
     }
 
     private void OnEnable()
     {
         controls.Player.Move.performed += OnMove;
         controls.Player.Move.canceled += OnMoveCanceled;
-        controls.Enable(); // Bật input
+        controls.Player.Dash.performed += OnDash; // Khi nhấn phím Dash
+        controls.Player.Dash.canceled += OnDashCanceled; // Khi nhả phím Dash
+        controls.Enable();
     }
 
     private void OnDisable()
     {
         controls.Player.Move.performed -= OnMove;
         controls.Player.Move.canceled -= OnMoveCanceled;
-        controls.Disable(); // Tắt input
+        controls.Player.Dash.performed -= OnDash;
+        controls.Player.Dash.canceled -= OnDashCanceled;
+        controls.Disable();
     }
 
     private void OnMove(InputAction.CallbackContext context)
     {
-        moveInput = context.ReadValue<Vector2>(); // Nhận input từ người chơi
-        playerMovement.SetMoveDirection(moveInput); // Gửi dữ liệu cho PlayerMovement
+        moveInput = context.ReadValue<Vector2>();
+        playerMovement.SetMoveDirection(moveInput);
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext context)
     {
         moveInput = Vector2.zero;
         playerMovement.SetMoveDirection(moveInput);
+    }
+
+    private void OnDash(InputAction.CallbackContext context)
+    {
+        // Nhấn giữ để lướt khi đủ năng lượng
+        playerMovement.TryDash();
+    }
+
+    private void OnDashCanceled(InputAction.CallbackContext context)
+    {
+        // Hủy bỏ khi nhả phím
     }
 }
