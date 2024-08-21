@@ -1,10 +1,14 @@
 using UnityEngine;
 
-[RequireComponent(typeof(PlayerDash))]
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float maxMoveSpeed = 5f; // Tốc độ tối đa khi di chuyển
+    [SerializeField] private float acceleration = 10f; // Tốc độ tăng dần
+    [SerializeField] private float deceleration = 5f; // Tốc độ giảm dần khi ngừng di chuyển
+    [SerializeField] private float slideThreshold = 0.01f; // Ngưỡng tốc độ dừng hoàn toàn
+
     private Vector2 moveDirection;
+    private float currentSpeed = 0f;
     private PlayerDash playerDash;
 
     private void Awake()
@@ -18,35 +22,37 @@ public class PlayerMovement : MonoBehaviour
         {
             Move();
         }
-
-        // Nạp năng lượng khi di chuyển
-        if (moveDirection != Vector2.zero)
-        {
-            playerDash.RechargeEnergy(Time.deltaTime);
-        }
     }
 
     public void SetMoveDirection(Vector2 direction)
     {
-        moveDirection = direction;
-
-        if (!playerDash.IsDashing) // Cập nhật hướng khi không lướt
+        if (!playerDash.IsDashing) // Cập nhật hướng di chuyển khi không lướt
         {
-            Move();
+            moveDirection = direction.normalized;
         }
-    }
-
-    public void TryDash()
-    {
-        playerDash.TryDash(moveDirection); // Gọi Dash từ PlayerDash khi nhấn giữ phím
     }
 
     private void Move()
     {
         if (moveDirection != Vector2.zero)
         {
-            Vector3 movement = new Vector3(moveDirection.x, moveDirection.y, 0);
-            transform.position += movement * moveSpeed * Time.deltaTime;
+            // Tăng tốc dần lên tốc độ tối đa
+            currentSpeed = Mathf.MoveTowards(currentSpeed, maxMoveSpeed, acceleration * Time.deltaTime);
         }
+        else
+        {
+            // Giảm tốc dần về 0 khi không di chuyển
+            currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, deceleration * Time.deltaTime);
+
+            // Nếu tốc độ nhỏ hơn ngưỡng, dừng hoàn toàn
+            if (currentSpeed <= slideThreshold)
+            {
+                currentSpeed = 0f;
+            }
+        }
+
+        // Di chuyển nhân vật với tốc độ hiện tại
+        Vector3 movement = new Vector3(moveDirection.x, moveDirection.y, 0) * currentSpeed * Time.deltaTime;
+        transform.position += movement;
     }
 }

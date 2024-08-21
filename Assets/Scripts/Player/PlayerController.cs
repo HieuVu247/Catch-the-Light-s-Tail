@@ -2,24 +2,26 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(PlayerMovement))]
+[RequireComponent(typeof(PlayerDash))]
 public class PlayerController : MonoBehaviour
 {
     private PlayerControls controls;
     private Vector2 moveInput;
     private PlayerMovement playerMovement;
+    private PlayerDash playerDash;
 
     private void Awake()
     {
         controls = new PlayerControls();
         playerMovement = GetComponent<PlayerMovement>();
+        playerDash = GetComponent<PlayerDash>();
     }
 
     private void OnEnable()
     {
         controls.Player.Move.performed += OnMove;
         controls.Player.Move.canceled += OnMoveCanceled;
-        controls.Player.Dash.performed += OnDash; // Khi nhấn phím Dash
-        controls.Player.Dash.canceled += OnDashCanceled; // Khi nhả phím Dash
+        controls.Player.Dash.performed += OnDash;
         controls.Enable();
     }
 
@@ -28,7 +30,6 @@ public class PlayerController : MonoBehaviour
         controls.Player.Move.performed -= OnMove;
         controls.Player.Move.canceled -= OnMoveCanceled;
         controls.Player.Dash.performed -= OnDash;
-        controls.Player.Dash.canceled -= OnDashCanceled;
         controls.Disable();
     }
 
@@ -46,12 +47,6 @@ public class PlayerController : MonoBehaviour
 
     private void OnDash(InputAction.CallbackContext context)
     {
-        // Nhấn giữ để lướt khi đủ năng lượng
-        playerMovement.TryDash();
-    }
-
-    private void OnDashCanceled(InputAction.CallbackContext context)
-    {
-        // Hủy bỏ khi nhả phím
+        playerDash.TryDash(moveInput);
     }
 }

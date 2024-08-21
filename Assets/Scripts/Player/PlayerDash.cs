@@ -4,18 +4,19 @@ public class PlayerDash : MonoBehaviour
 {
     [SerializeField] private float dashSpeed = 15f;
     [SerializeField] private float dashDuration = 0.3f;
-    [SerializeField] private int maxEnergy = 100;
     [SerializeField] private int dashEnergyCost = 50;
-    [SerializeField] private float energyRechargeRate = 140f; // Năng lượng hồi mỗi giây
+    [SerializeField] private int maxEnergy = 100;
+    [SerializeField] private float energyRechargeRate = 10f; // 10 năng lượng mỗi giây
 
     private Vector2 dashDirection;
     private bool isDashing = false;
     private float dashTime = 0f;
-    private int currentEnergy;
 
-    private float energyRechargeTimer = 0f; // Biến theo dõi thời gian hồi
+    private int currentEnergy;
+    private float energyRechargeTimer = 0f;
 
     public bool IsDashing => isDashing;
+    public bool CanDash => currentEnergy >= dashEnergyCost;
 
     private void Awake()
     {
@@ -28,11 +29,15 @@ public class PlayerDash : MonoBehaviour
         {
             DashMove();
         }
+        else
+        {
+            RechargeEnergy(Time.deltaTime);
+        }
     }
 
     public void TryDash(Vector2 direction)
     {
-        if (!isDashing && currentEnergy >= dashEnergyCost && direction != Vector2.zero)
+        if (!isDashing && CanDash && direction != Vector2.zero)
         {
             StartDash(direction);
         }
@@ -40,13 +45,10 @@ public class PlayerDash : MonoBehaviour
 
     private void StartDash(Vector2 direction)
     {
-        if (direction != Vector2.zero)
-        {
-            isDashing = true;
-            dashTime = dashDuration;
-            dashDirection = direction;
-            UseEnergy(dashEnergyCost);
-        }
+        isDashing = true;
+        dashTime = dashDuration;
+        dashDirection = direction;
+        UseEnergy(dashEnergyCost);
     }
 
     private void DashMove()
@@ -63,18 +65,14 @@ public class PlayerDash : MonoBehaviour
         }
     }
 
-    public void RechargeEnergy(float deltaTime)
+    private void RechargeEnergy(float deltaTime)
     {
-        // Thời gian hồi năng lượng mỗi giây theo đúng tỷ lệ
         energyRechargeTimer += deltaTime;
-
-        // Cứ mỗi giây sẽ hồi 140 năng lượng
         if (energyRechargeTimer >= 1f)
         {
-            int energyToRecharge = Mathf.FloorToInt(energyRechargeRate * energyRechargeTimer); // Tính số năng lượng hồi lại
-            currentEnergy += energyToRecharge;
-            currentEnergy = Mathf.Clamp(currentEnergy, 0, maxEnergy); // Đảm bảo không vượt quá năng lượng tối đa
-            energyRechargeTimer = 0f; // Reset bộ đếm
+            currentEnergy += Mathf.FloorToInt(energyRechargeRate);
+            currentEnergy = Mathf.Clamp(currentEnergy, 0, maxEnergy);
+            energyRechargeTimer = 0f;
         }
     }
 
@@ -94,3 +92,4 @@ public class PlayerDash : MonoBehaviour
         return maxEnergy;
     }
 }
+    
